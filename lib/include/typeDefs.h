@@ -11,14 +11,32 @@ typedef signed short s16;
 typedef signed int s32;
 typedef signed long long s64;
 
-struct VariableInfo
+// byte offset, data length (in bits), and bit offset
+struct DataVarInfo
 {
 public:
-    int byte_offset;       // The offset of the value
-    std::string data_name; // The name of the data
-    int data_length;       // The length of the data in bits
-    int bit_offset;        // The offset of where the bits are in the array
-    void *data_array_ptr;  // A pointer to the data array (ie a list of Pokemon)
+    int byteOffset; // The offset of the value
+    // std::string data_name; // The name of the data
+    int dataLength; // The length of the data in bits
+    int bitOffset;  // The offset of where the bits are in the array
+    // void *data_array_ptr;  // A pointer to the data array (ie a list of Pokemon)
+};
+
+enum GetSet
+{
+    GET,
+    SET,
+};
+
+enum Stat
+{
+    HP,
+    ATTACK,
+    DEFENSE,
+    SPEED,
+    SPECIAL,
+    SPECIAL_ATTACK,
+    SPECIAL_DEFENSE
 };
 
 #endif
