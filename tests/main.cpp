@@ -6,12 +6,12 @@
 int main()
 {
     Gen1Pokemon test1;
-    int val = test1.getVar(test1.speciesIndexNumber);
-    std::cout << val;
+    int val = test1.getSpeciesIndexNumber();
+    std::cout << val << "\n";
     
-    test1.setVar(test1.speciesIndexNumber, 45);
-    val = test1.getVar(test1.speciesIndexNumber);
-    std::cout << val;
+    test1.setSpeciesIndexNumber(45);
+    val = test1.getSpeciesIndexNumber();
+    std::cout << val << "\n";
 }
 
 /*

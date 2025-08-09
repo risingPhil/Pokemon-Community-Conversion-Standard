@@ -5,8 +5,7 @@
 
 class Pokemon // The base Pokemon class
 {
-    // protected:
-public:
+protected:
     //  Will be set by child classes
     byte *dataArrayPtr;
     byte *nicknameArrayPtr;
@@ -20,48 +19,102 @@ public:
 class GBPokemon : public Pokemon // The class for gen 1 and 2 Pokemon, since they share some conversion functions
 {
 public:
-    GBPokemon();
-    // virtual byte *getDataArray();
-    // virtual byte *getOTArray();
-    // virtual byte *getNicknameArray();
-    // virtual byte getExternalIndexNumber(); // The index value stored outside of the main data array, usually in the party
-    // protected:
+    // This constructor fills all our convenience arrays
+    GBPokemon()
+    {
+        types[0] = typeOne, types[1] = typeTwo;
+        moves[0] = moveOne, moves[1] = moveTwo, moves[2] = moveThree, moves[3] = moveFour;
+        statExps[0] = hpStatExp, statExps[1] = atkStatExp, statExps[2] = defStatExp, statExps[3] = speStatExp, statExps[4] = spcStatExp;
+        DVs[1] = atkDV, DVs[2] = defDV, DVs[3] = speDV, DVs[4] = spcDV;
+        PPUpNums[0] = ppUpNumMoveOne, PPUpNums[1] = ppUpNumMoveTwo, PPUpNums[2] = ppUpNumMoveThree, PPUpNums[3] = ppUpNumMoveFour;
+        PPUpTotals[0] = ppNumTotalMoveOne, PPUpTotals[1] = ppNumTotalMoveTwo, PPUpTotals[2] = ppNumTotalMoveThree, PPUpTotals[3] = ppNumTotalMoveFour;
+    }
+
+    // These store the data bytes
     byte nicknameArray[11];
     byte OTArray[11];
     byte externalIndexNumber;
 
-    // All of the data info variables
-    DataVarInfo speciesIndexNumber;
-    DataVarInfo currentHP;
-    DataVarInfo pcLevel;
-    DataVarInfo statusCondition;
-    DataVarInfo typeOne;
-    DataVarInfo typeTwo;
-    DataVarInfo catchRate;
-    DataVarInfo moveOne;
-    DataVarInfo moveTwo;
-    DataVarInfo moveThree;
-    DataVarInfo moveFour;
-    DataVarInfo originalTrainerID;
-    DataVarInfo expPoints;
-    DataVarInfo hpStatExp;
-    DataVarInfo atkStatExp;
-    DataVarInfo defStatExp;
-    DataVarInfo speStatExp;
-    DataVarInfo spcStatExp;
-    DataVarInfo atkDV;
-    DataVarInfo defDV;
-    DataVarInfo speDV;
-    DataVarInfo spcDV;
-    DataVarInfo ppUpNumMoveOne;
-    DataVarInfo ppNumTotalMoveOne;
-    DataVarInfo ppUpNumMoveTwo;
-    DataVarInfo ppNumTotalMoveTwo;
-    DataVarInfo ppUpNumMoveThree;
-    DataVarInfo ppNumTotalMoveThree;
-    DataVarInfo ppUpNumMoveFour;
-    DataVarInfo ppNumTotalMoveFour;
-    DataVarInfo trueLevel;
+    // These will be filled by each gen child class with the correct data location
+    DataVarInfo
+        // All of the data info variables
+        speciesIndexNumber,
+        currentHP,
+        pcLevel,
+        statusCondition,
+        typeOne, typeTwo,
+        catchRate,
+        moveOne, moveTwo, moveThree, moveFour,
+        originalTrainerID,
+        expPoints,
+        hpStatExp, atkStatExp, defStatExp, speStatExp, spcStatExp,
+        atkDV, defDV, speDV, spcDV,
+        ppUpNumMoveOne, ppUpNumMoveTwo, ppUpNumMoveThree, ppUpNumMoveFour,
+        ppNumTotalMoveOne, ppNumTotalMoveTwo, ppNumTotalMoveThree, ppNumTotalMoveFour,
+        trueLevel,
+
+        // and the convenient arrays of some of the variable groups:
+        types[2],
+        moves[4],
+        statExps[5],
+        DVs[5],
+        PPUpNums[4],
+        PPUpTotals[4];
+
+    // All of the simple getters and setters are defined here
+    u32 getSpeciesIndexNumber() { return getVar(speciesIndexNumber); }
+    u32 getCurrentHP() { return getVar(currentHP); }
+    u32 getPCLevel() { return getVar(pcLevel); }
+    u32 getStatusCondition() { return getVar(statusCondition); }
+    u32 getCatchRate() { return getVar(catchRate); }
+    u32 getOriginalTrainerID() { return getVar(originalTrainerID); }
+    u32 getExpPoints() { return getVar(expPoints); }
+    u32 getTrueLevel() { return getVar(trueLevel); }
+
+    bool setSpeciesIndexNumber(byte newVal) { return setVar(speciesIndexNumber, newVal); }
+    bool setCurrentHP(byte newVal) { return setVar(currentHP, newVal); }
+    bool setPCLevel(byte newVal) { return setVar(pcLevel, newVal); }
+    bool setStatusCondition(byte newVal) { return setVar(statusCondition, newVal); }
+    bool setCatchRate(byte newVal) { return setVar(catchRate, newVal); }
+    bool setOriginalTrainerID(byte newVal) { return setVar(originalTrainerID, newVal); }
+    bool setExpPoints(byte newVal) { return setVar(expPoints, newVal); }
+    bool setTrueLevel(byte newVal) { return setVar(trueLevel, newVal); }
+
+    // The ones that access arrays are defined here:
+    u32 getType(int typeIndex) { return getVar(types[typeIndex]); }
+    u32 getMove(int moveIndex) { return getVar(moves[moveIndex]); }
+    u32 getStatExp(Stat currStat) { return getVar(statExps[currStat]); }
+    u32 getPPUpNum(int moveIndex) { return getVar(PPUpNums[moveIndex]); }
+    u32 getPPTotal(int moveIndex) { return getVar(PPUpTotals[moveIndex]); }
+
+    bool setType(int typeIndex, byte newVal) { return setVar(types[typeIndex], newVal); }
+    bool setMove(int moveIndex, byte newVal) { return setVar(types[moveIndex], newVal); }
+    bool setStatExp(Stat currStat, byte newVal) { return setVar(types[currStat], newVal); }
+    bool setPPUpNum(int moveIndex, byte newVal) { return setVar(types[moveIndex], newVal); }
+    bool setPPTotal(int moveIndex, byte newVal) { return setVar(types[moveIndex], newVal); }
+
+    // Get DV is special due to the implementation of HP DV
+    u32 getDV(Stat currStat)
+    {
+        if (currStat == HP)
+        {
+        }
+        else
+        {
+            return getVar(DVs[currStat]);
+        }
+    }
+
+    bool setDV(Stat currStat, byte newVal)
+    {
+        if (currStat == HP)
+        {
+        }
+        else
+        {
+            return setVar(DVs[currStat], newVal);
+        }
+    }
 };
 
 class Gen1Pokemon : public GBPokemon // The class for gen 1 Pokemon
@@ -170,37 +223,6 @@ public:
         trueLevel =
             {0x21, 1, 0};
     }
-
-    u32 getSpeciesIndexNumber();
-    u32 getCurrentHP();
-    u32 getPCLevel();
-    u32 getStatusCondition();
-    u32 getType(int typeIndex);
-    u32 getCatchRate();
-    u32 getMove(int moveIndex);
-    u32 getOriginalTrainerID();
-    u32 getExpPoints();
-    u32 getStatExp(Stat currStat);
-    u32 getDV(Stat currStat);
-    u32 getPPUpNum(int moveIndex);
-    u32 getPPTotal(int moveIndex);
-    u32 getTrueLevel();
-
-    bool setSpeciesIndexNumber(byte newVal);
-    bool setSpeciesIndexNumber(byte newVal);
-    bool setCurrentHP(byte newVal);
-    bool setPCLevel(byte newVal);
-    bool setStatusCondition(byte newVal);
-    bool setType(int typeIndex, byte newVal);
-    bool setCatchRate(byte newVal);
-    bool setMove(int moveIndex, byte newVal);
-    bool setOriginalTrainerID(byte newVal);
-    bool setExpPoints(byte newVal);
-    bool setStatExp(Stat currStat, byte newVal);
-    bool setDV(Stat currStat, byte newVal);
-    bool setPPUpNum(int moveIndex, byte newVal);
-    bool setPPTotal(int moveIndex, byte newVal);
-    bool setTrueLevel(byte newVal);
 
 protected:
     byte dataArray[33];
