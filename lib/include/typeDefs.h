@@ -16,16 +16,8 @@ struct DataVarInfo
 {
 public:
     int byteOffset; // The offset of the value
-    // std::string data_name; // The name of the data
     int dataLength; // The length of the data in bits
     int bitOffset;  // The offset of where the bits are in the array
-    // void *data_array_ptr;  // A pointer to the data array (ie a list of Pokemon)
-};
-
-enum GetSet
-{
-    GET,
-    SET,
 };
 
 enum Stat
@@ -34,9 +26,40 @@ enum Stat
     ATTACK,
     DEFENSE,
     SPEED,
-    SPECIAL,
     SPECIAL_ATTACK,
-    SPECIAL_DEFENSE
+    SPECIAL_DEFENSE,
+    SPECIAL = SPECIAL_ATTACK,
+};
+
+enum Gen1Types
+{
+    NORMAL,
+    FIGHTING,
+    FLYING,
+    POISON,
+    GROUND,
+    ROCK,
+    BIRD,
+    BUG,
+    GHOST,
+    NINE,
+    TEN,
+    ELEVEN,
+    TWELVE,
+    THIRTEEN,
+    FOURTEEN,
+    FIFTEEN,
+    SIXTEEN,
+    SEVENTEEN,
+    EIGHTEEN,
+    NINETEEN,
+    FIRE,
+    WATER,
+    GRASS,
+    ELECTRIC,
+    PSYCHIC,
+    ICE,
+    DRAGON,
 };
 
 #endif
