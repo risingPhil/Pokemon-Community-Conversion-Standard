@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "pokemon.h"
+#include "PokeBox.h"
 
 int main()
 {
@@ -24,6 +24,8 @@ int main()
     PC.addPokemon(&test3);
 
     //test2.setHeldItem(1);
+    test1.setMove(3, 7);
+    test1.setPPUpNum(3, 2);
 
     // test1.setDV(HP, 15);
     // test2.setDV(HP, 0);
@@ -33,4 +35,5 @@ int main()
     // std::cout << test3 << "\n\n";
     // std::cout << "test: " << PC;
     std::cout << "\n" << (test1.convertToGen3(&converted) ? "Converted Successfully!" : "Conversion Error!") << "\n" << converted;
+    std::cout << "\n" << converted.currRand;
 }
