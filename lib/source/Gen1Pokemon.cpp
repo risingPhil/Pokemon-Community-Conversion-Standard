@@ -1,8 +1,9 @@
 #include "Gen1Pokemon.h"
 
 // All of this info is set in the constructor, so it is defined here instead of in the cpp file
-Gen1Pokemon::Gen1Pokemon()
+Gen1Pokemon::Gen1Pokemon(PokemonTables *table)
 {
+    pokeTable = table;
     dataArrayPtr = dataArray;
     dataArraySize = 33;
     generation = 1;
@@ -68,7 +69,6 @@ Gen1Pokemon::Gen1Pokemon()
     ppNumTotalMoveFour =
         {0x20, 6, 0};
 }
-
 #if INCLUDE_IOSTREAM
 void Gen1Pokemon::print(std::ostream &os)
 {
@@ -88,8 +88,19 @@ void Gen1Pokemon::print(std::ostream &os)
 }
 #endif
 
-bool Gen1Pokemon::setNewSpeciesIndex(Gen3Pokemon *newPkmn)
+u32 Gen1Pokemon::getSpeciesIndexNumber()
 {
-    newPkmn->setSpeciesIndexNumber(gen_1_index_array[getSpeciesIndexNumber()]);
-    return true;
+    return gen_1_index_array[getVar(speciesIndexNumber)];
+}
+
+bool Gen1Pokemon::setSpeciesIndexNumber(byte newVal)
+{
+    for (int i = 0; i < 191; i++)
+    {
+        if (gen_1_index_array[i] == newVal)
+        {
+            return setVar(speciesIndexNumber, newVal);
+        }
+    }
+    return setVar(speciesIndexNumber, newVal);
 }

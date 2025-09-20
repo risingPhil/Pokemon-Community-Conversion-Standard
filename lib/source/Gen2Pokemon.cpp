@@ -1,7 +1,8 @@
 #include "Gen2Pokemon.h"
 
-Gen2Pokemon::Gen2Pokemon()
+Gen2Pokemon::Gen2Pokemon(PokemonTables *table)
 {
+    pokeTable = table;
     dataArrayPtr = dataArray;
     dataArraySize = 32;
     generation = 2;
@@ -94,12 +95,6 @@ void Gen2Pokemon::print(std::ostream &os)
        << "\n\tTime: " << getCaughtDataTime()
        << "\n\tLevel: " << getCaughtDataLevel()
        << "\n\tTrainer Gender: " << getCaughtDataGender()
-       << "\n\tLocation: " << getCaughtDataLocation();
+       << "\n\tLocation: " << getCaughtDataLocation() << "\n";
 }
 #endif
-
-bool Gen2Pokemon::setNewSpeciesIndex(Gen3Pokemon *newPkmn)
-{
-    newPkmn->setSpeciesIndexNumber(getSpeciesIndexNumber());
-    return true;
-}

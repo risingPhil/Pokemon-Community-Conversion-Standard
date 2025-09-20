@@ -12,9 +12,7 @@ protected:
     byte nicknameArray[11];
     byte OTArray[11];
     byte externalIndexNumber;
-
-    // This is extra information that's nice to hold on to
-    int generation;
+    Language lang = (Language)0;
 
     // These will be filled by each gen child class with the correct data location
     DataVarInfo
@@ -59,14 +57,14 @@ protected:
 #endif
 
 public:
+    virtual void loadData(Language nLang, byte nDataArray[], byte nNicknameArray[], byte nOTArray[], byte nExternalIndexNum);
+
     // All of the simple getters and setters are defined here
     u32 getLevel() { return getVar(level); }
-    u32 getSpeciesIndexNumber() { return getVar(speciesIndexNumber); }
     u32 getTrainerID() { return getVar(trainerID); }
     u32 getExpPoints() { return getVar(expPoints); }
 
     bool setLevel(byte newVal) { return setVar(level, newVal); }
-    bool setSpeciesIndexNumber(byte newVal) { return setVar(speciesIndexNumber, newVal); }
     bool setOriginalTrainerID(byte newVal) { return setVar(trainerID, newVal); }
     bool setExpPoints(u32 newVal) { return setVar(expPoints, newVal); }
 
@@ -96,7 +94,7 @@ public:
     bool setType(int typeIndex, Gen1Types newVal) { return false; }
 
     // ---- Gen 2
-    u32 getHeldItem() { return 0; } // no item
+    u32 getHeldItem() { return 0; }    // no item
     u32 getFriendship() { return 70; } // default friendship - make this different for Pikachu in Yellow???
     u32 getPokerusStrain() { return 0; }
     u32 getPokerusDaysRemaining() { return 0; }
@@ -118,23 +116,31 @@ public:
     u32 getDV(Stat currStat);
     bool setDV(Stat currStat, byte newVal);
 
+    // These is virtual so it can be overwitten in Gen 1
+    virtual u32 getSpeciesIndexNumber() { return getVar(speciesIndexNumber); }
+    virtual bool setSpeciesIndexNumber(byte newVal) { return setVar(speciesIndexNumber, newVal); }
+
+    // These aren't direct variables, but they're useful to have
+    Language getLanguage() { return lang; };
     byte getUnownLetter();
     Gender getGender();
     Nature getVirtualConsoleNature();
+    bool getIsShiny();
 
     // And this is for all the conversion stuff
-    bool convertToGen3(Gen3Pokemon *newPkmn);
+    bool convertToGen3(Gen3Pokemon *newPkmn, bool sanitizeMythicals);
+    bool loadEvent(Gen3Pokemon *newPkmn);
     bool checkIfIsInvalid(Gen3Pokemon *newPkmn);
-    virtual bool setNewSpeciesIndex(Gen3Pokemon *newPkmn) = 0;
-    bool generatePersonalityValue(Gen3Pokemon *newPkmn);
+    bool generatePersonalityValue(Gen3Pokemon *newPkmn, RNGMethod rng);
     bool convertNickname(Gen3Pokemon *newPkmn);
-    bool convertTrainerName(Gen3Pokemon *newPkmn);
+    bool convertTrainerInfo(Gen3Pokemon *newPkmn);
     bool checkEXP(Gen3Pokemon *newPkmn);
     bool checkIsShiny(Gen3Pokemon *newPkmn);
     bool updateMoves(Gen3Pokemon *newPkmn);
     bool setOriginInfo(Gen3Pokemon *newPkmn);
     bool setRibbonsAndObedience(Gen3Pokemon *newPkmn);
     bool setEVsAndIVs(Gen3Pokemon *newPkmn);
+    bool setMisc(Gen3Pokemon *newPkmn);
 };
 
 #endif

@@ -11,10 +11,11 @@
 #if INCLUDE_IOSTREAM
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 #endif
 
 #if !USE_EXTERNALDATA
-//#include "pokemonData.h"
+// #include "pokemonData.h"
 #endif
 
 #if USE_CPP_RAND
@@ -63,38 +64,41 @@ inline u32 fnv1a_hash(unsigned char *data, size_t length)
 
 class Pokemon // The base Pokemon class
 {
-
 public:
-    // This is used to load our data in from an array
-    void loadData(byte incomingArray[]);
-
 #if INCLUDE_IOSTREAM
     virtual void print(std::ostream &os)
     {
         os << "This is a base Pokemon, it has no info!";
     };
-    
+
     friend std::ostream &operator<<(std::ostream &os, Pokemon &p)
     {
         p.print(os);
         return os;
     }
-#endif
+
+    int dataArraySize;
+    int nicknameArraySize;
+    int OTArraySize;
+
+    // This is extra information that's nice to hold on to
+    int generation = 0;
+
+    #endif
 
 protected:
+    PokemonTables *pokeTable;
+
     //  Will be set by child classes
     byte *dataArrayPtr;
-    int dataArraySize;
 
     // These can probably move
     byte *nicknameArrayPtr;
-    int nicknameArraySize;
 
     byte *OTArrayPtr;
-    int OTArraySize;
 
     byte *externalIndexNumberPtr;
-    
+
     bool isBigEndian;
 
     u32 getVar(DataVarInfo dataVar);

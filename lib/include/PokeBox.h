@@ -8,26 +8,32 @@
 class PokeBox // Stores up to 30 Pokemon in a box
 {
 private:
+    void convertPkmn(int index, bool sanitizeMythicals);
+    PokemonTables *table;
     Pokemon *boxStorage[30];
     int currIndex = 0;
 
 public:
+    PokeBox(PokemonTables *nTable);
     bool addPokemon(Pokemon *currPkmn);
     Pokemon *getPokemon(int index);
     bool removePokemon(int index);
+    void loadData(int generation, Language nLang, byte nDataArray[]);
+    void convertAll(bool sanitizeMythicals);
 
 #if INCLUDE_IOSTREAM
     friend std::ostream &operator<<(std::ostream &os, PokeBox &pc)
     {
         for (int i = 0; i < pc.currIndex; i++)
         {
-            os << "\n" << 
-            "---------------- " << "POKEMON #" << i << " ----------------" << "\n" <<
-            *pc.boxStorage[i] << "\n";
+            os << "\n"
+               << "---------------- " << "POKEMON #" << i << " ----------------" << "\n"
+               << *pc.boxStorage[i] << "\n";
         }
 
         return os;
     }
+    std::string printDataArray();
 #endif
 };
 

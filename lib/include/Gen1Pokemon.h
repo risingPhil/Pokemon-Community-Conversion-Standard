@@ -6,7 +6,7 @@
 class Gen1Pokemon : public GBPokemon // The class for gen 1 Pokemon
 {
 public:
-    Gen1Pokemon();
+    Gen1Pokemon(PokemonTables *table);
 
     byte dataArray[33];
 
@@ -20,6 +20,10 @@ public:
 
     u32 getType(int typeIndex) { return getVar(*g1_types[typeIndex]); }
     bool setType(int typeIndex, Gen1Types newVal) { return setVar(*g1_types[typeIndex], newVal); }
+
+    // These are reimlemented to get around Gen 1 having a different index order compared to Gen 2/3
+    u32 getSpeciesIndexNumber();
+    bool setSpeciesIndexNumber(byte newVal);
 
 #if INCLUDE_IOSTREAM
     void print(std::ostream &os);

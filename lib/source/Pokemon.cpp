@@ -1,14 +1,5 @@
 #include "Pokemon.h"
 
-// This is used to load our data in from an array
-void Pokemon::loadData(byte incomingArray[])
-{
-    for (int i = 0; i < dataArraySize; i++)
-    {
-        dataArrayPtr[i] = incomingArray[i];
-    }
-}
-
 u32 Pokemon::getVar(DataVarInfo dataVar)
 {
     return getVar(dataVar, 0);

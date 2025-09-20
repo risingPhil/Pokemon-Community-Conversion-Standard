@@ -27,6 +27,7 @@
 // Erractic is Gen 3+
 // Fluctuating is Gen 3+
 
+/*
 #define JPN_ID 1
 #define ENG_ID 2
 #define FRE_ID 3
@@ -50,6 +51,7 @@
 #define EVENT_MEW_GER 4
 #define EVENT_MEW_SPA 5
 #define EVENT_CELEBI 6
+*/
 
 #define MAX_PKMN_IN_BOX 30
 #define NUM_POKEMON 252
@@ -118,8 +120,6 @@ public:
     u8 POWER_POINTS[252];
     byte EVENT_PKMN[8][80];
     u8 TYPES[POKEMON_ARRAY_SIZE][2];
-    u16 input_charset[256];
-    u16 gen3_charset[256];
 #else
 
     const u8 EXP_GROUPS[POKEMON_ARRAY_SIZE] = {
@@ -1674,7 +1674,10 @@ public:
         {0xe, 0xc},   // Celebi is psychic/grass
         {0xc, 0xc},   // Treecko is grass/grass
     };
+
 #endif
+    u16 input_charset[256];
+    u16 gen3_charset[256];
     PokemonTables();
 
     void load_exp_groups();
@@ -1684,8 +1687,8 @@ public:
     void load_power_points();
     void load_event_pkmn();
     void load_types();
-    void load_input_charset(byte gen, byte lang);
-    void load_gen3_charset(byte lang);
+    void load_input_charset(byte gen, Language lang);
+    void load_gen3_charset(Language lang);
 
     u32 get_max_exp(int index_num);
     u8 get_gender_threshold(int index_num, bool is_gen_3);
@@ -1698,7 +1701,7 @@ public:
 /**
  * Loads the charset for <gen> and <lang> into <output_char_array>
  */
-void load_localized_charset(u16 *output_char_array, byte gen, byte lang);
+void load_localized_charset(u16 *output_char_array, byte gen, Language lang);
 byte get_char_from_charset(const u16 *charset, u16 input_char);
 
 #endif

@@ -6,7 +6,7 @@
 class Gen2Pokemon : public GBPokemon // The class for gen 2 Pokemon
 {
 public:
-    Gen2Pokemon();
+    Gen2Pokemon(PokemonTables *table);
     byte dataArray[32];
 
     u32 getHeldItem() { return getVar(g2_heldItem); }
@@ -31,7 +31,6 @@ public:
     void print(std::ostream &os);
 #endif
 
-    bool setNewSpeciesIndex(Gen3Pokemon *newPkmn);
 };
 
 #endif
