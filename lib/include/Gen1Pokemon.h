@@ -7,29 +7,33 @@ class Gen1Pokemon : public GBPokemon // The class for gen 1 Pokemon
 {
 public:
     Gen1Pokemon(PokemonTables *table);
-
     byte dataArray[33];
 
+    u32 getSpeciesIndexNumber();
     u32 getCurrentHP() { return getVar(g1_currentHP); }
     u32 getStatusCondition() { return getVar(g1_statusCondition); }
     u32 getCatchRate() { return getVar(g1_catchRate); }
+    u32 getType(int typeIndex) { return getVar(*g1_types[typeIndex]); }
 
+    bool setSpeciesIndexNumber(byte newVal);
     bool setCurrentHP(byte newVal) { return setVar(g1_currentHP, newVal); }
     bool setStatusCondition(byte newVal) { return setVar(g1_statusCondition, newVal); }
     bool setCatchRate(byte newVal) { return setVar(g1_catchRate, newVal); }
-
-    u32 getType(int typeIndex) { return getVar(*g1_types[typeIndex]); }
     bool setType(int typeIndex, Gen1Types newVal) { return setVar(*g1_types[typeIndex], newVal); }
 
-    // These are reimlemented to get around Gen 1 having a different index order compared to Gen 2/3
-    u32 getSpeciesIndexNumber();
-    bool setSpeciesIndexNumber(byte newVal);
+protected:
+    static const DataVarInfo
+        // Gen 1 specific data
+        g1_currentHP,
+        g1_statusCondition,
+        g1_typeOne, g1_typeTwo,
+        g1_catchRate,
+        *g1_types[2];
 
-#if INCLUDE_IOSTREAM
+#if ON_GBA
+#else
     void print(std::ostream &os);
 #endif
-
-    bool setNewSpeciesIndex(Gen3Pokemon *newPkmn);
 };
 
 #endif

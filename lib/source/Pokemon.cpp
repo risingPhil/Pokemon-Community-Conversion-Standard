@@ -1,5 +1,15 @@
 #include "Pokemon.h"
 
+Pokemon::Pokemon()
+{
+    isValid = false;
+}
+
+u32 Pokemon::getSpeciesIndexNumber()
+{
+    return 0;
+}
+
 u32 Pokemon::getVar(DataVarInfo dataVar)
 {
     return getVar(dataVar, 0);

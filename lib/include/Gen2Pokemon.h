@@ -27,10 +27,21 @@ public:
     bool setCaughtDataGender(byte newVal) { return setVar(g2_caughtDataGender, newVal); }
     bool setCaughtDataLocation(byte newVal) { return setVar(g2_caughtDataLocation, newVal); }
 
-#if INCLUDE_IOSTREAM
+protected:
+    static const DataVarInfo
+        g2_heldItem,
+        g2_friendship,
+        g2_pokerusStrain,
+        g2_pokerusDaysRemaining,
+        g2_caughtDataTime,
+        g2_caughtDataLevel,
+        g2_caughtDataGender,
+        g2_caughtDataLocation;
+
+#if ON_GBA
+#else
     void print(std::ostream &os);
 #endif
-
 };
 
 #endif

@@ -5,6 +5,8 @@ Gen3Pokemon::Gen3Pokemon(PokemonTables *table)
     pokeTable = table;
     dataArrayPtr = dataArray;
     dataArraySize = 80;
+    nicknameArrayPtr = &dataArray[0x8];
+    OTArrayPtr = &dataArray[0x14];
     isBigEndian = false;
     isEncrypted = false;
     generation = 3;
@@ -16,14 +18,15 @@ bool Gen3Pokemon::convertToGen3(Gen3Pokemon *g3p)
 }
 
 // This is used to easily print out a Pokemon, when using a standard C++ terminal
-#if INCLUDE_IOSTREAM
+#if ON_GBA
+#else
 void Gen3Pokemon::print(std::ostream &os)
 {
     updateChecksum();
     updateSubstructureShift();
 
     pokeTable->load_gen3_charset(ENGLISH);
-    if (isInvalid)
+    if (!isValid)
     {
         os << "ERROR: POKEMON IS INVALID\n";
     }
@@ -73,7 +76,7 @@ void Gen3Pokemon::print(std::ostream &os)
            << "Use Egg Name: " << getUseEggName() << "\n"
            << "Block Box RS: " << getBlockBoxRS() << "\n"
            << "Markings: " << getMarkings() << "\n"
-           << "Checksum: " << getChecksum() << " (is valid = " << true << ")\n"
+           << "Checksum: " << getChecksum() << "\n"
            << "Species Index Number: " << getSpeciesIndexNumber() << "\n"
            << "Held Item: " << getHeldItem() << "\n"
            << "Experience: " << getExpPoints() << "\n"
@@ -166,7 +169,7 @@ bool Gen3Pokemon::setPersonalityValue(u32 newVal) // Setting the Personality Val
     bool successful = setVar(personalityValue, newVal);
     if (successful)
     {
-        successful &= setAbility(getPersonalityValue() & 0b1);
+        //successful &= setAbility(getPersonalityValue() & 0b1);
     }
     return successful;
 }
@@ -177,6 +180,7 @@ bool Gen3Pokemon::setAbility(u32 newVal) // We need to check if they have two ab
     {
         newVal = 0;
     }
+    internalAbility = newVal;
     return setVar(ability, substructOffsets[SUB_M], newVal);
 }
 
@@ -291,8 +295,8 @@ void Gen3Pokemon::swapSubstructures(int indexOne, int indexTwo)
         dataArrayPtr[0x20 + (indexTwo * 12) + i] = tempByte;
     }
 
-    int valOne;
-    int valTwo;
+    int valOne = 0;
+    int valTwo = 0;
     int tempInt;
 
     for (int i = 0; i < 4; i++)
@@ -309,6 +313,13 @@ void Gen3Pokemon::swapSubstructures(int indexOne, int indexTwo)
     tempInt = substructOffsets[valOne];
     substructOffsets[valOne] = substructOffsets[valTwo];
     substructOffsets[valTwo] = tempInt;
+}
+
+void Gen3Pokemon::updateSecurityData()
+{
+    updateSubstructureShift();
+    updateChecksum();
+    encryptSubstructures();
 }
 
 byte Gen3Pokemon::getUnownLetter()
@@ -338,7 +349,7 @@ Nature Gen3Pokemon::getNature()
 Gender Gen3Pokemon::getGender()
 {
     byte index = getSpeciesIndexNumber();
-    int threshold = pokeTable->get_gender_threshold(index, true);
+    u32 threshold = pokeTable->get_gender_threshold(index, true);
 
     switch (threshold)
     {
@@ -356,6 +367,21 @@ Gender Gen3Pokemon::getGender()
         return FEMALE;
     }
 }
+
+int Gen3Pokemon::getAbilityFromPersonalityValue()
+{
+    if (internalAbility == 255)
+    {
+        return 255;
+    }
+    return getPersonalityValue() & 0b1;
+}
+
+int Gen3Pokemon::getSize()
+{
+    return 255;
+}
+
 bool Gen3Pokemon::getIsShiny()
 {
     return (getTrainerID() ^
@@ -381,3 +407,337 @@ bool Gen3Pokemon::setOTArray(byte otArr[], int otArrSize)
     }
     return true;
 }
+
+#pragma region
+// Since there is only the Pokemon parent class, we can directly define these directly
+const DataVarInfo
+    // All of the data info variables
+    Gen3Pokemon::personalityValue =
+        {0x00, 32, 0},
+    Gen3Pokemon::trainerID =
+        {0x04, 16, 0},
+    Gen3Pokemon::secretID =
+        {0x06, 16, 0},
+    Gen3Pokemon::nicknameLetterOne =
+        {0x08, 8, 0}, // This is silly. Change this.
+    Gen3Pokemon::nicknameLetterTwo =
+        {0x09, 8, 0},
+    Gen3Pokemon::nicknameLetterThree =
+        {0x0A, 8, 0},
+    Gen3Pokemon::nicknameLetterFour =
+        {0x0B, 8, 0},
+    Gen3Pokemon::nicknameLetterFive =
+        {0x0C, 8, 0},
+    Gen3Pokemon::nicknameLetterSix =
+        {0x0D, 8, 0},
+    Gen3Pokemon::nicknameLetterSeven =
+        {0x0E, 8, 0},
+    Gen3Pokemon::nicknameLetterEight =
+        {0x0F, 8, 0},
+    Gen3Pokemon::nicknameLetterNine =
+        {0x10, 8, 0},
+    Gen3Pokemon::nicknameLetterTen =
+        {0x11, 8, 0},
+    Gen3Pokemon::language =
+        {0x12, 8, 0},
+    Gen3Pokemon::isBadEgg =
+        {0x13, 1, 0},
+    Gen3Pokemon::hasSpecies =
+        {0x13, 1, 1},
+    Gen3Pokemon::useEggName =
+        {0x13, 1, 2},
+    Gen3Pokemon::blockBoxRS =
+        {0x13, 1, 3},
+    // Gen3Pokemon::unusedFlags =
+    //     {0x13, 4, 4},
+    Gen3Pokemon::originalTrainerNameLetterOne =
+        {0x14, 8, 0}, // This is also silly. Change this.
+    Gen3Pokemon::originalTrainerNameLetterTwo =
+        {0x15, 8, 0},
+    Gen3Pokemon::originalTrainerNameLetterThree =
+        {0x16, 8, 0},
+    Gen3Pokemon::originalTrainerNameLetterFour =
+        {0x17, 8, 0},
+    Gen3Pokemon::originalTrainerNameLetterFive =
+        {0x18, 8, 0},
+    Gen3Pokemon::originalTrainerNameLetterSix =
+        {0x19, 8, 0},
+    Gen3Pokemon::originalTrainerNameLetterSeven =
+        {0x1A, 8, 0},
+    Gen3Pokemon::markings =
+        {0x1B, 4, 0},
+    Gen3Pokemon::checksum =
+        {0x1C, 16, 0};
+// Gen3Pokemon::unknown =
+//     {0x1E, 16, 0};
+
+const DataVarInfo
+    *Gen3Pokemon::nickname[10] = {
+        &Gen3Pokemon::nicknameLetterOne,
+        &Gen3Pokemon::nicknameLetterTwo,
+        &Gen3Pokemon::nicknameLetterThree,
+        &Gen3Pokemon::nicknameLetterFour,
+        &Gen3Pokemon::nicknameLetterFive,
+        &Gen3Pokemon::nicknameLetterSix,
+        &Gen3Pokemon::nicknameLetterSeven,
+        &Gen3Pokemon::nicknameLetterEight,
+        &Gen3Pokemon::nicknameLetterNine,
+        &Gen3Pokemon::nicknameLetterTen,
+},
+    *Gen3Pokemon::originalTrainerName[7] = {
+        &Gen3Pokemon::originalTrainerNameLetterOne,
+        &Gen3Pokemon::originalTrainerNameLetterTwo,
+        &Gen3Pokemon::originalTrainerNameLetterThree,
+        &Gen3Pokemon::originalTrainerNameLetterFour,
+        &Gen3Pokemon::originalTrainerNameLetterFive,
+        &Gen3Pokemon::originalTrainerNameLetterSix,
+        &Gen3Pokemon::originalTrainerNameLetterSeven,
+};
+
+// data section G
+const DataVarInfo
+    Gen3Pokemon::speciesIndexNumber =
+        {0x20 + 0x00, 16, 0},
+    Gen3Pokemon::heldItem =
+        {0x20 + 0x02, 16, 0},
+    Gen3Pokemon::expPoints =
+        {0x20 + 0x04, 32, 0},
+    Gen3Pokemon::ppUpNumMoveOne =
+        {0x20 + 0x08, 2, 0},
+    Gen3Pokemon::ppUpNumMoveTwo =
+        {0x20 + 0x08, 2, 2},
+    Gen3Pokemon::ppUpNumMoveThree =
+        {0x20 + 0x08, 2, 4},
+    Gen3Pokemon::ppUpNumMoveFour =
+        {0x20 + 0x08, 2, 6},
+    Gen3Pokemon::friendship =
+        {0x20 + 0x09, 8, 0};
+// Gen3Pokemon::unused =
+//    {0x20 + 0x0A, 16, 0};
+const DataVarInfo
+    *Gen3Pokemon::ppUpNums[4] = {
+        &Gen3Pokemon::ppUpNumMoveOne,
+        &Gen3Pokemon::ppUpNumMoveTwo,
+        &Gen3Pokemon::ppUpNumMoveThree,
+        &Gen3Pokemon::ppUpNumMoveFour,
+};
+
+// data section A
+const DataVarInfo
+    Gen3Pokemon::moveOne =
+        {0x20 + 0x00, 16, 0},
+    Gen3Pokemon::moveTwo =
+        {0x20 + 0x02, 16, 0},
+    Gen3Pokemon::moveThree =
+        {0x20 + 0x04, 16, 0},
+    Gen3Pokemon::moveFour =
+        {0x20 + 0x06, 16, 0},
+    Gen3Pokemon::moveOnePP =
+        {0x20 + 0x08, 8, 0},
+    Gen3Pokemon::moveTwoPP =
+        {0x20 + 0x09, 8, 0},
+    Gen3Pokemon::moveThreePP =
+        {0x20 + 0x0A, 8, 0},
+    Gen3Pokemon::moveFourPP =
+        {0x20 + 0x0B, 8, 0};
+const DataVarInfo
+    *Gen3Pokemon::moves[4] = {
+        &Gen3Pokemon::moveOne,
+        &Gen3Pokemon::moveTwo,
+        &Gen3Pokemon::moveThree,
+        &Gen3Pokemon::moveFour,
+},
+    *Gen3Pokemon::ppUpTotals[4] = {
+        &Gen3Pokemon::moveOnePP,
+        &Gen3Pokemon::moveTwoPP,
+        &Gen3Pokemon::moveThreePP,
+        &Gen3Pokemon::moveFourPP,
+};
+
+// data section E
+const DataVarInfo
+    Gen3Pokemon::hpEVs =
+        {0x20 + 0x00, 8, 0},
+    Gen3Pokemon::attackEVs =
+        {0x20 + 0x01, 8, 0},
+    Gen3Pokemon::defenseEVs =
+        {0x20 + 0x02, 8, 0},
+    Gen3Pokemon::speedEVs =
+        {0x20 + 0x03, 8, 0},
+    Gen3Pokemon::specialAttackEVs =
+        {0x20 + 0x04, 8, 0},
+    Gen3Pokemon::specialDefenseEVs =
+        {0x20 + 0x05, 8, 0},
+    Gen3Pokemon::coolnessCondition =
+        {0x20 + 0x06, 8, 0},
+    Gen3Pokemon::beautyCondition =
+        {0x20 + 0x07, 8, 0},
+    Gen3Pokemon::cutenessCondition =
+        {0x20 + 0x08, 8, 0},
+    Gen3Pokemon::smartnessCondition =
+        {0x20 + 0x09, 8, 0},
+    Gen3Pokemon::toughnessCondition =
+        {0x20 + 0x0A, 8, 0},
+    Gen3Pokemon::sheen =
+        {0x20 + 0x0B, 8, 0};
+
+const DataVarInfo
+    *Gen3Pokemon::EVs[6] = {
+        &Gen3Pokemon::hpEVs,
+        &Gen3Pokemon::attackEVs,
+        &Gen3Pokemon::defenseEVs,
+        &Gen3Pokemon::speedEVs,
+        &Gen3Pokemon::specialAttackEVs,
+        &Gen3Pokemon::specialDefenseEVs,
+},
+    *Gen3Pokemon::contestConditions[5] = {
+        &Gen3Pokemon::coolnessCondition,
+        &Gen3Pokemon::beautyCondition,
+        &Gen3Pokemon::cutenessCondition,
+        &Gen3Pokemon::smartnessCondition,
+        &Gen3Pokemon::toughnessCondition,
+};
+
+const DataVarInfo
+
+    // data section M
+    Gen3Pokemon::pokerusStrain =
+        {0x20 + 0x00, 4, 0},
+    Gen3Pokemon::pokerusDaysRemaining =
+        {0x20 + 0x00, 4, 4},
+    Gen3Pokemon::metLocation =
+        {0x20 + 0x01, 8, 0},
+    Gen3Pokemon::levelMet =
+        {0x20 + 0x02, 7, 0},
+    Gen3Pokemon::gameOfOrigin =
+        {0x20 + 0x02, 4, 7},
+    Gen3Pokemon::pokeballCaughtIn =
+        {0x20 + 0x02, 4, 11},
+    Gen3Pokemon::originalTrainerGender =
+        {0x20 + 0x02, 1, 15},
+    Gen3Pokemon::hpIVs =
+        {0x20 + 0x04, 5, 0},
+    Gen3Pokemon::attackIVs =
+        {0x20 + 0x04, 5, 5},
+    Gen3Pokemon::defenseIVs =
+        {0x20 + 0x04, 5, 10},
+    Gen3Pokemon::speedIVs =
+        {0x20 + 0x04, 5, 15},
+    Gen3Pokemon::specialAttackIVs =
+        {0x20 + 0x04, 5, 20},
+    Gen3Pokemon::specialDefenseIVs =
+        {0x20 + 0x04, 5, 25},
+    Gen3Pokemon::isEgg =
+        {0x20 + 0x04, 1, 30},
+    Gen3Pokemon::ability =
+        {0x20 + 0x04, 1, 31},
+    Gen3Pokemon::coolNormalContestRibbon =
+        {0x20 + 0x08, 1, 0}, // This is also very silly. Change it.
+    Gen3Pokemon::coolSuperContestRibbon =
+        {0x20 + 0x08, 1, 0},
+    Gen3Pokemon::coolHyperContestRibbon =
+        {0x20 + 0x08, 1, 1},
+    Gen3Pokemon::coolMasterContestRibbon =
+        {0x20 + 0x08, 1, 2},
+    Gen3Pokemon::beautyNormalContestRibbon =
+        {0x20 + 0x08, 1, 3},
+    Gen3Pokemon::beautySuperContestRibbon =
+        {0x20 + 0x08, 1, 4},
+    Gen3Pokemon::beautyHyperContestRibbon =
+        {0x20 + 0x08, 1, 5},
+    Gen3Pokemon::beautyMasterContestRibbon =
+        {0x20 + 0x08, 1, 6},
+    Gen3Pokemon::cuteNormalContestRibbon =
+        {0x20 + 0x08, 1, 7},
+    Gen3Pokemon::cuteSuperContestRibbon =
+        {0x20 + 0x08, 1, 8},
+    Gen3Pokemon::cuteHyperContestRibbon =
+        {0x20 + 0x08, 1, 9},
+    Gen3Pokemon::cuteMasterContestRibbon =
+        {0x20 + 0x08, 1, 10},
+    Gen3Pokemon::smartNormalContestRibbon =
+        {0x20 + 0x08, 1, 11},
+    Gen3Pokemon::smartSuperContestRibbon =
+        {0x20 + 0x08, 1, 12},
+    Gen3Pokemon::smartHyperContestRibbon =
+        {0x20 + 0x08, 1, 13},
+    Gen3Pokemon::smartMasterContestRibbon =
+        {0x20 + 0x08, 1, 14},
+    Gen3Pokemon::toughNormalContestRibbon =
+        {0x20 + 0x08, 1, 15},
+    Gen3Pokemon::toughSuperContestRibbon =
+        {0x20 + 0x08, 1, 16},
+    Gen3Pokemon::toughHyperContestRibbon =
+        {0x20 + 0x08, 1, 17},
+    Gen3Pokemon::toughMasterContestRibbon =
+        {0x20 + 0x08, 1, 18},
+    Gen3Pokemon::championRibbon =
+        {0x20 + 0x08, 1, 19},
+    Gen3Pokemon::winningRibbon =
+        {0x20 + 0x08, 1, 20},
+    Gen3Pokemon::victoryRibbon =
+        {0x20 + 0x08, 1, 21},
+    Gen3Pokemon::artistRibbon =
+        {0x20 + 0x08, 1, 22},
+    Gen3Pokemon::effortRibbon =
+        {0x20 + 0x08, 1, 23},
+    Gen3Pokemon::battleChampionRibbon =
+        {0x20 + 0x08, 1, 24},
+    Gen3Pokemon::regionalChampionRibbon =
+        {0x20 + 0x08, 1, 25},
+    Gen3Pokemon::nationalChampionRibbon =
+        {0x20 + 0x08, 1, 26},
+    Gen3Pokemon::countryRibbon =
+        {0x20 + 0x08, 1, 27},
+    Gen3Pokemon::nationalRibbon =
+        {0x20 + 0x08, 1, 28},
+    Gen3Pokemon::earthRibbon =
+        {0x20 + 0x08, 1, 29},
+    Gen3Pokemon::unusedRibbons =
+        {0x20 + 0x08, 1, 30},
+    Gen3Pokemon::fatefulEncounterObedience =
+        {0x20 + 0x08, 1, 31};
+
+const DataVarInfo
+    *Gen3Pokemon::IVs[6] = {
+        &Gen3Pokemon::hpIVs,
+        &Gen3Pokemon::attackIVs,
+        &Gen3Pokemon::defenseIVs,
+        &Gen3Pokemon::speedIVs,
+        &Gen3Pokemon::specialAttackIVs,
+        &Gen3Pokemon::specialDefenseIVs,
+},
+    *Gen3Pokemon::ribbons[31] = {
+        &Gen3Pokemon::coolNormalContestRibbon,
+        &Gen3Pokemon::coolSuperContestRibbon,
+        &Gen3Pokemon::coolHyperContestRibbon,
+        &Gen3Pokemon::coolMasterContestRibbon,
+        &Gen3Pokemon::beautyNormalContestRibbon,
+        &Gen3Pokemon::beautySuperContestRibbon,
+        &Gen3Pokemon::beautyHyperContestRibbon,
+        &Gen3Pokemon::beautyMasterContestRibbon,
+        &Gen3Pokemon::cuteNormalContestRibbon,
+        &Gen3Pokemon::cuteSuperContestRibbon,
+        &Gen3Pokemon::cuteHyperContestRibbon,
+        &Gen3Pokemon::cuteMasterContestRibbon,
+        &Gen3Pokemon::smartNormalContestRibbon,
+        &Gen3Pokemon::smartSuperContestRibbon,
+        &Gen3Pokemon::smartHyperContestRibbon,
+        &Gen3Pokemon::smartMasterContestRibbon,
+        &Gen3Pokemon::toughNormalContestRibbon,
+        &Gen3Pokemon::toughSuperContestRibbon,
+        &Gen3Pokemon::toughHyperContestRibbon,
+        &Gen3Pokemon::toughMasterContestRibbon,
+        &Gen3Pokemon::championRibbon,
+        &Gen3Pokemon::winningRibbon,
+        &Gen3Pokemon::victoryRibbon,
+        &Gen3Pokemon::artistRibbon,
+        &Gen3Pokemon::effortRibbon,
+        &Gen3Pokemon::battleChampionRibbon,
+        &Gen3Pokemon::regionalChampionRibbon,
+        &Gen3Pokemon::nationalChampionRibbon,
+        &Gen3Pokemon::countryRibbon,
+        &Gen3Pokemon::nationalRibbon,
+        &Gen3Pokemon::earthRibbon,
+};
+#pragma endregion

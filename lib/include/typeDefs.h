@@ -1,6 +1,11 @@
 #ifndef TYPEDEFS_H
 #define TYPEDEFS_H
 
+#include "pccs_settings.h"
+
+#if ON_GBA
+#include <tonc.h>
+#else
 typedef unsigned char u8, byte, uchar, echar;
 typedef unsigned short u16, hword, ushort, eshort;
 typedef unsigned int u32, word, uint, eint;
@@ -10,11 +15,11 @@ typedef signed char s8;
 typedef signed short s16;
 typedef signed int s32;
 typedef signed long long s64;
+#endif
 
 // byte offset, data length (in bits), and bit offset
 struct DataVarInfo
 {
-public:
     int byteOffset; // The offset of the value
     int dataLength; // The length of the data in bits
     int bitOffset;  // The offset of where the bits are in the array
@@ -399,7 +404,7 @@ enum Species
     MISSINGNO = 0xFF,
 };
 
-enum PokeBall 
+enum PokeBall
 {
     MASTER = 1,
     ULTRA,

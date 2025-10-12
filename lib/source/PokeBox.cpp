@@ -1,6 +1,22 @@
 #include "PokeBox.h"
+#include <string>
+
+#if ON_GBA
+#include "global_frame_controller.h"
+#include "text_engine.h"
+#endif
+
+PokeBox::PokeBox()
+{
+    nullMon = new Pokemon();
+}
 
 PokeBox::PokeBox(PokemonTables *nTable)
+{
+    table = nTable;
+}
+
+void PokeBox::setTable(PokemonTables *nTable)
 {
     table = nTable;
 }
@@ -22,7 +38,22 @@ Pokemon *PokeBox::getPokemon(int index)
     {
         return boxStorage[index];
     }
-    return nullptr;
+    return nullMon;
+}
+
+GBPokemon *PokeBox::getGBPokemon(int index)
+{
+    Pokemon *currPkmn = getPokemon(index);
+    GBPokemon *currGBPkmn = (GBPokemon *)currPkmn;
+    return currGBPkmn;
+}
+
+Gen3Pokemon *PokeBox::getGen3Pokemon(int index)
+{
+    Pokemon *currPkmn = getPokemon(index);
+    Gen3Pokemon *currGen3Pkmn = (Gen3Pokemon *)currPkmn;
+    currGen3Pkmn->updateSecurityData();
+    return currGen3Pkmn;
 }
 
 bool PokeBox::removePokemon(int index)
@@ -33,6 +64,7 @@ bool PokeBox::removePokemon(int index)
         {
             boxStorage[i] = boxStorage[i + 1];
         }
+        currIndex -= 1;
         return true;
     }
     return false;
@@ -47,8 +79,7 @@ void PokeBox::loadData(int generation, Language nLang, byte nDataArray[])
     }
     for (int pkmnIndex = 0; pkmnIndex < nDataArray[0]; pkmnIndex++)
     {
-        GBPokemon *newPkmn;
-
+        GBPokemon *newPkmn = nullptr;
         if (generation == 1)
         {
             newPkmn = new Gen1Pokemon(table);
@@ -80,25 +111,45 @@ void PokeBox::loadData(int generation, Language nLang, byte nDataArray[])
     }
 }
 
-void PokeBox::convertPkmn(int index, bool sanitizeMythicals)
+void PokeBox::convertPkmn(int index)
 {
     Gen3Pokemon *convertedPkmn = new Gen3Pokemon(table);
     Pokemon *basePkmn = getPokemon(index);
-    GBPokemon *oldPkmn = dynamic_cast<GBPokemon *>(basePkmn);
+    GBPokemon *oldPkmn = (GBPokemon *)(basePkmn);
 
-    oldPkmn->convertToGen3(convertedPkmn, sanitizeMythicals);
+    oldPkmn->convertToGen3(convertedPkmn, stabilize_mythical);
     delete boxStorage[index];
     boxStorage[index] = convertedPkmn;
 }
 
-void PokeBox::convertAll(bool sanitizeMythicals)
+void PokeBox::convertAll()
 {
     for (int i = 0; i < currIndex; i++)
     {
-        convertPkmn(i, sanitizeMythicals);
+        convertPkmn(i);
     }
 }
-#if INCLUDE_IOSTREAM
+
+int PokeBox::getNumInBox()
+{
+    return currIndex;
+}
+
+int PokeBox::getNumValid()
+{
+    int numValid = 0;
+    for (int i = 0; i < currIndex; i++)
+    {
+        if (getPokemon(i)->isValid)
+        {
+            numValid++;
+        }
+    }
+    return numValid;
+}
+
+#if ON_GBA
+#else
 std::string PokeBox::printDataArray()
 {
     std::stringstream ss;
@@ -106,7 +157,7 @@ std::string PokeBox::printDataArray()
     {
         if (boxStorage[i]->generation == 3)
         {
-            ss << dynamic_cast<Gen3Pokemon *>(boxStorage[i])->printDataArray(true) << "\n";
+            ss << ((Gen3Pokemon *)boxStorage[i])->printDataArray(true) << "\n";
         }
     }
     return ss.str();

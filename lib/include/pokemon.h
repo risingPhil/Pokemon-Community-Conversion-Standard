@@ -1,14 +1,10 @@
 #ifndef POKEMON_H
 #define POKEMON_H
 
-#define INCLUDE_IOSTREAM true
-#define USE_EXTERNAL_DATA false
-#define USE_CPP_RAND true
-
-#include "typeDefs.h"
 #include "pokemon_data.h"
 
-#if INCLUDE_IOSTREAM
+#if ON_GBA
+#else
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -19,7 +15,8 @@
 #endif
 
 #if USE_CPP_RAND
-
+#else
+#include "random.h"
 #endif
 
 // Avoid having to import math
@@ -33,17 +30,13 @@ inline u32 sizeToMask(int len)
     return (out - 1);
 }
 
-#if USE_CPP_RAND
-// #include <random>
-#endif
-
 inline u32 getPureRand() // Gets a random number from the device itself
 {
 #if USE_CPP_RAND
     srand(time(0));
     return rand() << 16 | rand();
 #else
-
+    return get_rand_u32();
 #endif
 }
 
@@ -65,7 +58,12 @@ inline u32 fnv1a_hash(unsigned char *data, size_t length)
 class Pokemon // The base Pokemon class
 {
 public:
-#if INCLUDE_IOSTREAM
+    Pokemon();
+    virtual ~Pokemon() {};
+    virtual u32 getSpeciesIndexNumber();
+
+#if ON_GBA
+#else
     virtual void print(std::ostream &os)
     {
         os << "This is a base Pokemon, it has no info!";
@@ -76,28 +74,24 @@ public:
         p.print(os);
         return os;
     }
+#endif
 
     int dataArraySize;
     int nicknameArraySize;
     int OTArraySize;
 
+    //  Will be set by child classes
+    byte *dataArrayPtr;
+    byte *nicknameArrayPtr;
+    byte *OTArrayPtr;
+    byte *externalIndexNumberPtr;
+
     // This is extra information that's nice to hold on to
     int generation = 0;
-
-    #endif
+    bool isValid;
 
 protected:
     PokemonTables *pokeTable;
-
-    //  Will be set by child classes
-    byte *dataArrayPtr;
-
-    // These can probably move
-    byte *nicknameArrayPtr;
-
-    byte *OTArrayPtr;
-
-    byte *externalIndexNumberPtr;
 
     bool isBigEndian;
 

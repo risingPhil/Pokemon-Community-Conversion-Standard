@@ -163,13 +163,13 @@ int main()
     // Gen1Pokemon test1(&table);
     // Gen2Pokemon test2(&table);
     // Gen3Pokemon test3(&table);
-    Gen3Pokemon converted(&table);
-    Gen2Pokemon test4(&table);
+    //Gen3Pokemon converted(&table);
+    //Gen2Pokemon test4(&table);
 
     // test1.loadData(charmander_data, charmander_name, charmander_ot, charmander_id);
     // test2.loadData(cyndaquil_data);
     // test3.loadData(roselia_data);
-    test4.loadData(ENGLISH, celebi_data, charmander_name, charmander_ot, celebi_id);
+    //test4.loadData(ENGLISH, celebi_data, charmander_name, charmander_ot, celebi_id);
 
     // PC.addPokemon(&test1);
     // PC.addPokemon(&test2);
@@ -187,17 +187,19 @@ int main()
     // std::cout << test3 << "\n\n";
     // std::cout << "test: " << PC;
     
-    std::cout << "\n"
-              << (test4.convertToGen3(&converted, true) ? "Converted Successfully!" : "Conversion Error!") << "\n"
-              << converted << "\n";
+    //std::cout << "\n"
+    //          << (test4.convertToGen3(&converted, true) ? "Converted Successfully!" : "Conversion Error!") << "\n"
+    //          << converted << "\n";
 
 
-    std::cout << converted.printDataArray(true);
+    //std::cout << converted.printDataArray(true);
     
 
-    //PC.loadData(2, ENGLISH, gen2_debug_box_data);
+    PC.loadData(1, ENGLISH, gen1_rb_debug_box_data);
     //std::cout << *PC.getPokemon(10);
-    //PC.convertAll();
-    //std::cout << *PC.getPokemon(10);
+    //PC.getGBPokemon(10)->setDV(ATTACK, 10);
+    PC.convertAll();
+    std::cout << *PC.getPokemon(0);
     //std::cout << PC.printDataArray();
+    //std::cout << PC;
 }

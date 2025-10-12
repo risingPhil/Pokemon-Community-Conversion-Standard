@@ -1,13 +1,8 @@
 #ifndef POKEMON_DATA_H
 #define POKEMON_DATA_H
 
-#define COMPRESS_DATA false
-
-#if COMPRESS_DATA
-#include <tonc.h>
-#else
 #include "typeDefs.h"
-#endif
+#include "pccs_settings.h"
 
 #define med_fast_max (u32)1000000
 // Slightly Fast goes unused
@@ -18,11 +13,11 @@
 // Erractic is Gen 3+
 // Fluctuating is Gen 3+
 
-#define EXP_FAST 0
+#define EXP_MED_FAST 0
 // Slightly Fast goes unused
 // Slightly Slow goes unused
 #define EXP_MED_SLOW 3
-#define EXP_MED_FAST 4
+#define EXP_FAST 4
 #define EXP_SLOW 5
 // Erractic is Gen 3+
 // Fluctuating is Gen 3+
@@ -56,6 +51,7 @@
 #define MAX_PKMN_IN_BOX 30
 #define NUM_POKEMON 252
 #define POKEMON_ARRAY_SIZE NUM_POKEMON + 1
+#define POKEMON_SIZE 80
 
 // these arrays are too small to compress
 extern const u32 EXP_MAXIMUMS[6];
@@ -112,7 +108,7 @@ public:
     // 0 means not loaded, 1=JPN, 2=Intern
     u8 gen3_charset_type;
 
-#if COMPRESS_DATA
+#if USE_COMPRESSED_DATA
     u8 EXP_GROUPS[POKEMON_ARRAY_SIZE];
     u8 GENDER_RATIO[POKEMON_ARRAY_SIZE];
     bool NUM_ABILITIES[POKEMON_ARRAY_SIZE];

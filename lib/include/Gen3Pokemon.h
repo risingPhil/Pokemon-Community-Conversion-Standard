@@ -17,8 +17,12 @@ public:
     u16 getNextRand_u16();
     u16 getPrevRand_u16();
 
-    // This stores if the Pokemon was converted successfully
-    bool isInvalid;
+    // These are stored internally so that they can be set by different functions
+    byte internalUnownLetter;
+    Nature internalNature;
+    Gender internalGender;
+    int internalSize;
+    u32 internalAbility;
 
 protected:
     // These store the data bytes
@@ -35,340 +39,150 @@ protected:
 
 #pragma region
     // Since there is only the Pokemon parent class, we can directly define these directly
-    const DataVarInfo
+    static const DataVarInfo
         // All of the data info variables
-        personalityValue =
-            {0x00, 32, 0},
-        trainerID =
-            {0x04, 16, 0},
-        secretID =
-            {0x06, 16, 0},
-        nicknameLetterOne =
-            {0x08, 8, 0}, // This is silly. Change this.
-        nicknameLetterTwo =
-            {0x09, 8, 0},
-        nicknameLetterThree =
-            {0x0A, 8, 0},
-        nicknameLetterFour =
-            {0x0B, 8, 0},
-        nicknameLetterFive =
-            {0x0C, 8, 0},
-        nicknameLetterSix =
-            {0x0D, 8, 0},
-        nicknameLetterSeven =
-            {0x0E, 8, 0},
-        nicknameLetterEight =
-            {0x0F, 8, 0},
-        nicknameLetterNine =
-            {0x10, 8, 0},
-        nicknameLetterTen =
-            {0x11, 8, 0},
-        language =
-            {0x12, 8, 0},
-        isBadEgg =
-            {0x13, 1, 0},
-        hasSpecies =
-            {0x13, 1, 1},
-        useEggName =
-            {0x13, 1, 2},
-        blockBoxRS =
-            {0x13, 1, 3},
-        // unusedFlags =
-        //     {0x13, 4, 4},
-        originalTrainerNameLetterOne =
-            {0x14, 8, 0}, // This is also silly. Change this.
-        originalTrainerNameLetterTwo =
-            {0x15, 8, 0},
-        originalTrainerNameLetterThree =
-            {0x16, 8, 0},
-        originalTrainerNameLetterFour =
-            {0x17, 8, 0},
-        originalTrainerNameLetterFive =
-            {0x18, 8, 0},
-        originalTrainerNameLetterSix =
-            {0x19, 8, 0},
-        originalTrainerNameLetterSeven =
-            {0x1A, 8, 0},
-        markings =
-            {0x1B, 4, 0},
-        checksum =
-            {0x1C, 16, 0};
-    // unknown =
-    //     {0x1E, 16, 0};
+        personalityValue,
+        trainerID,
+        secretID,
+        nicknameLetterOne, // This is silly. Change this.
+        nicknameLetterTwo,
+        nicknameLetterThree,
+        nicknameLetterFour,
+        nicknameLetterFive,
+        nicknameLetterSix,
+        nicknameLetterSeven,
+        nicknameLetterEight,
+        nicknameLetterNine,
+        nicknameLetterTen,
+        language,
+        isBadEgg,
+        hasSpecies,
+        useEggName,
+        blockBoxRS,
+        // unusedFlags,
+        originalTrainerNameLetterOne, // This is also silly. Change this.
+        originalTrainerNameLetterTwo,
+        originalTrainerNameLetterThree,
+        originalTrainerNameLetterFour,
+        originalTrainerNameLetterFive,
+        originalTrainerNameLetterSix,
+        originalTrainerNameLetterSeven,
+        markings,
+        checksum;
+    // unknown;
 
-    const DataVarInfo
-        *nickname[10] = {
-            &nicknameLetterOne,
-            &nicknameLetterTwo,
-            &nicknameLetterThree,
-            &nicknameLetterFour,
-            &nicknameLetterFive,
-            &nicknameLetterSix,
-            &nicknameLetterSeven,
-            &nicknameLetterEight,
-            &nicknameLetterNine,
-            &nicknameLetterTen,
-        },
-        *originalTrainerName[7] = {
-            &originalTrainerNameLetterOne,
-            &originalTrainerNameLetterTwo,
-            &originalTrainerNameLetterThree,
-            &originalTrainerNameLetterFour,
-            &originalTrainerNameLetterFive,
-            &originalTrainerNameLetterSix,
-            &originalTrainerNameLetterSeven,
-        };
+    static const DataVarInfo
+        *nickname[10],
+        *originalTrainerName[7];
 
     // data section G
-    const DataVarInfo
-        speciesIndexNumber =
-            {0x20 + 0x00, 16, 0},
-        heldItem =
-            {0x20 + 0x02, 16, 0},
-        expPoints =
-            {0x20 + 0x04, 32, 0},
-        ppUpNumMoveOne =
-            {0x20 + 0x08, 2, 0},
-        ppUpNumMoveTwo =
-            {0x20 + 0x08, 2, 2},
-        ppUpNumMoveThree =
-            {0x20 + 0x08, 2, 4},
-        ppUpNumMoveFour =
-            {0x20 + 0x08, 2, 6},
-        friendship =
-            {0x20 + 0x09, 8, 0};
-    // unused =
-    //    {0x20 + 0x0A, 16, 0};
-    const DataVarInfo
-        *ppUpNums[4] = {
-            &ppUpNumMoveOne,
-            &ppUpNumMoveTwo,
-            &ppUpNumMoveThree,
-            &ppUpNumMoveFour,
-        };
+    static const DataVarInfo
+        speciesIndexNumber,
+        heldItem,
+        expPoints,
+        ppUpNumMoveOne,
+        ppUpNumMoveTwo,
+        ppUpNumMoveThree,
+        ppUpNumMoveFour,
+        friendship;
+    // unused;
+
+    static const DataVarInfo
+        *ppUpNums[4];
 
     // data section A
-    const DataVarInfo
-        moveOne =
-            {0x20 + 0x00, 16, 0},
-        moveTwo =
-            {0x20 + 0x02, 16, 0},
-        moveThree =
-            {0x20 + 0x04, 16, 0},
-        moveFour =
-            {0x20 + 0x06, 16, 0},
-        moveOnePP =
-            {0x20 + 0x08, 8, 0},
-        moveTwoPP =
-            {0x20 + 0x09, 8, 0},
-        moveThreePP =
-            {0x20 + 0x0A, 8, 0},
-        moveFourPP =
-            {0x20 + 0x0B, 8, 0};
-    const DataVarInfo
-        *moves[4] = {
-            &moveOne,
-            &moveTwo,
-            &moveThree,
-            &moveFour,
-        },
-        *ppUpTotals[4] = {
-            &moveOnePP,
-            &moveTwoPP,
-            &moveThreePP,
-            &moveFourPP,
-        };
+    static const DataVarInfo
+        moveOne,
+        moveTwo,
+        moveThree,
+        moveFour,
+        moveOnePP,
+        moveTwoPP,
+        moveThreePP,
+        moveFourPP;
+    static const DataVarInfo
+        *moves[4],
+        *ppUpTotals[4];
 
     // data section E
-    const DataVarInfo
-        hpEVs =
-            {0x20 + 0x00, 8, 0},
-        attackEVs =
-            {0x20 + 0x01, 8, 0},
-        defenseEVs =
-            {0x20 + 0x02, 8, 0},
-        speedEVs =
-            {0x20 + 0x03, 8, 0},
-        specialAttackEVs =
-            {0x20 + 0x04, 8, 0},
-        specialDefenseEVs =
-            {0x20 + 0x05, 8, 0},
-        coolnessCondition =
-            {0x20 + 0x06, 8, 0},
-        beautyCondition =
-            {0x20 + 0x07, 8, 0},
-        cutenessCondition =
-            {0x20 + 0x08, 8, 0},
-        smartnessCondition =
-            {0x20 + 0x09, 8, 0},
-        toughnessCondition =
-            {0x20 + 0x0A, 8, 0},
-        sheen =
-            {0x20 + 0x0B, 8, 0};
+    static const DataVarInfo
+        hpEVs,
+        attackEVs,
+        defenseEVs,
+        speedEVs,
+        specialAttackEVs,
+        specialDefenseEVs,
+        coolnessCondition,
+        beautyCondition,
+        cutenessCondition,
+        smartnessCondition,
+        toughnessCondition,
+        sheen;
 
-    const DataVarInfo
-        *EVs[6] = {
-            &hpEVs,
-            &attackEVs,
-            &defenseEVs,
-            &speedEVs,
-            &specialAttackEVs,
-            &specialDefenseEVs,
-        },
-        *contestConditions[5] = {
-            &coolnessCondition,
-            &beautyCondition,
-            &cutenessCondition,
-            &smartnessCondition,
-            &toughnessCondition,
-        };
+    static const DataVarInfo
+        *EVs[6],
+        *contestConditions[5];
 
-    const DataVarInfo
+    static const DataVarInfo
 
         // data section M
-        pokerusStrain =
-            {0x20 + 0x00, 4, 0},
-        pokerusDaysRemaining =
-            {0x20 + 0x00, 4, 4},
-        metLocation =
-            {0x20 + 0x01, 8, 0},
-        levelMet =
-            {0x20 + 0x02, 7, 0},
-        gameOfOrigin =
-            {0x20 + 0x02, 4, 7},
-        pokeballCaughtIn =
-            {0x20 + 0x02, 4, 11},
-        originalTrainerGender =
-            {0x20 + 0x02, 1, 15},
-        hpIVs =
-            {0x20 + 0x04, 5, 0},
-        attackIVs =
-            {0x20 + 0x04, 5, 5},
-        defenseIVs =
-            {0x20 + 0x04, 5, 10},
-        speedIVs =
-            {0x20 + 0x04, 5, 15},
-        specialAttackIVs =
-            {0x20 + 0x04, 5, 20},
-        specialDefenseIVs =
-            {0x20 + 0x04, 5, 25},
-        isEgg =
-            {0x20 + 0x04, 1, 30},
-        ability =
-            {0x20 + 0x04, 1, 31},
-        coolNormalContestRibbon =
-            {0x20 + 0x08, 1, 0}, // This is also very silly. Change it.
-        coolSuperContestRibbon =
-            {0x20 + 0x08, 1, 0},
-        coolHyperContestRibbon =
-            {0x20 + 0x08, 1, 1},
-        coolMasterContestRibbon =
-            {0x20 + 0x08, 1, 2},
-        beautyNormalContestRibbon =
-            {0x20 + 0x08, 1, 3},
-        beautySuperContestRibbon =
-            {0x20 + 0x08, 1, 4},
-        beautyHyperContestRibbon =
-            {0x20 + 0x08, 1, 5},
-        beautyMasterContestRibbon =
-            {0x20 + 0x08, 1, 6},
-        cuteNormalContestRibbon =
-            {0x20 + 0x08, 1, 7},
-        cuteSuperContestRibbon =
-            {0x20 + 0x08, 1, 8},
-        cuteHyperContestRibbon =
-            {0x20 + 0x08, 1, 9},
-        cuteMasterContestRibbon =
-            {0x20 + 0x08, 1, 10},
-        smartNormalContestRibbon =
-            {0x20 + 0x08, 1, 11},
-        smartSuperContestRibbon =
-            {0x20 + 0x08, 1, 12},
-        smartHyperContestRibbon =
-            {0x20 + 0x08, 1, 13},
-        smartMasterContestRibbon =
-            {0x20 + 0x08, 1, 14},
-        toughNormalContestRibbon =
-            {0x20 + 0x08, 1, 15},
-        toughSuperContestRibbon =
-            {0x20 + 0x08, 1, 16},
-        toughHyperContestRibbon =
-            {0x20 + 0x08, 1, 17},
-        toughMasterContestRibbon =
-            {0x20 + 0x08, 1, 18},
-        championRibbon =
-            {0x20 + 0x08, 1, 19},
-        winningRibbon =
-            {0x20 + 0x08, 1, 20},
-        victoryRibbon =
-            {0x20 + 0x08, 1, 21},
-        artistRibbon =
-            {0x20 + 0x08, 1, 22},
-        effortRibbon =
-            {0x20 + 0x08, 1, 23},
-        battleChampionRibbon =
-            {0x20 + 0x08, 1, 24},
-        regionalChampionRibbon =
-            {0x20 + 0x08, 1, 25},
-        nationalChampionRibbon =
-            {0x20 + 0x08, 1, 26},
-        countryRibbon =
-            {0x20 + 0x08, 1, 27},
-        nationalRibbon =
-            {0x20 + 0x08, 1, 28},
-        earthRibbon =
-            {0x20 + 0x08, 1, 29},
-        unusedRibbons =
-            {0x20 + 0x08, 1, 30},
-        fatefulEncounterObedience =
-            {0x20 + 0x08, 1, 31};
+        pokerusStrain,
+        pokerusDaysRemaining,
+        metLocation,
+        levelMet,
+        gameOfOrigin,
+        pokeballCaughtIn,
+        originalTrainerGender,
+        hpIVs,
+        attackIVs,
+        defenseIVs,
+        speedIVs,
+        specialAttackIVs,
+        specialDefenseIVs,
+        isEgg,
+        ability,
+        coolNormalContestRibbon, // This is also very silly. Change it.
+        coolSuperContestRibbon,
+        coolHyperContestRibbon,
+        coolMasterContestRibbon,
+        beautyNormalContestRibbon,
+        beautySuperContestRibbon,
+        beautyHyperContestRibbon,
+        beautyMasterContestRibbon,
+        cuteNormalContestRibbon,
+        cuteSuperContestRibbon,
+        cuteHyperContestRibbon,
+        cuteMasterContestRibbon,
+        smartNormalContestRibbon,
+        smartSuperContestRibbon,
+        smartHyperContestRibbon,
+        smartMasterContestRibbon,
+        toughNormalContestRibbon,
+        toughSuperContestRibbon,
+        toughHyperContestRibbon,
+        toughMasterContestRibbon,
+        championRibbon,
+        winningRibbon,
+        victoryRibbon,
+        artistRibbon,
+        effortRibbon,
+        battleChampionRibbon,
+        regionalChampionRibbon,
+        nationalChampionRibbon,
+        countryRibbon,
+        nationalRibbon,
+        earthRibbon,
+        unusedRibbons,
+        fatefulEncounterObedience;
 
-    const DataVarInfo
-        *IVs[6] = {
-            &hpIVs,
-            &attackIVs,
-            &defenseIVs,
-            &speedIVs,
-            &specialAttackIVs,
-            &specialDefenseIVs,
-        },
-        *ribbons[31] = {
-            &coolNormalContestRibbon,
-            &coolSuperContestRibbon,
-            &coolHyperContestRibbon,
-            &coolMasterContestRibbon,
-            &beautyNormalContestRibbon,
-            &beautySuperContestRibbon,
-            &beautyHyperContestRibbon,
-            &beautyMasterContestRibbon,
-            &cuteNormalContestRibbon,
-            &cuteSuperContestRibbon,
-            &cuteHyperContestRibbon,
-            &cuteMasterContestRibbon,
-            &smartNormalContestRibbon,
-            &smartSuperContestRibbon,
-            &smartHyperContestRibbon,
-            &smartMasterContestRibbon,
-            &toughNormalContestRibbon,
-            &toughSuperContestRibbon,
-            &toughHyperContestRibbon,
-            &toughMasterContestRibbon,
-            &championRibbon,
-            &winningRibbon,
-            &victoryRibbon,
-            &artistRibbon,
-            &effortRibbon,
-            &battleChampionRibbon,
-            &regionalChampionRibbon,
-            &nationalChampionRibbon,
-            &countryRibbon,
-            &nationalRibbon,
-            &earthRibbon,
-        };
+    static const DataVarInfo
+        *IVs[6],
+        *ribbons[31];
 #pragma endregion
 
     // This is used to easily print out a Pokemon, when using a standard C++ terminal
-#if INCLUDE_IOSTREAM
+#if ON_GBA
+#else
 public:
     void print(std::ostream &os);
     std::string printDataArray(bool encrypedData);
@@ -464,11 +278,13 @@ public:
 
     void resetSubstructureShift();
 
+    void updateSecurityData();
+
     byte getUnownLetter();
-
     Nature getNature();
-
     Gender getGender();
+    int getAbilityFromPersonalityValue();
+    int getSize();
 
     bool getIsShiny();
 

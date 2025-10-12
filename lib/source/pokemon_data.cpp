@@ -1,7 +1,7 @@
 #include "pokemon_data.h"
 #include <cstring>
 
-#if COMPRESS_DATA
+#if USE_COMPRESSED_DATA
 #include "EXP_GROUPS_lz10_bin.h"
 #include "GENDER_RATIO_lz10_bin.h"
 #include "NUM_ABILITIES_lz10_bin.h"
@@ -740,7 +740,7 @@ const byte MOVESETS[POKEMON_ARRAY_SIZE][32]{
     {0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000010, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000}, // Treecko
 };
 
-#if COMPRESS_DATA
+#if USE_COMPRESSED_DATA
 #else
 const u16 gen_1_charsets[4][256]{
     // gen_1_Jpn_char_array
@@ -3343,7 +3343,7 @@ static void load_table(u8 *table, const u8 *source, bool &loadedBool)
     {
         return;
     }
-#if COMPRESS_DATA
+#if USE_COMPRESSED_DATA
     LZ77UnCompWram(source, table);
 #endif
     loadedBool = true;
@@ -3356,49 +3356,49 @@ PokemonTables::PokemonTables()
 
 void PokemonTables::load_exp_groups()
 {
-#if COMPRESS_DATA
+#if USE_COMPRESSED_DATA
     load_table(EXP_GROUPS, EXP_GROUPS_lz10_bin, exp_groups_loaded);
 #endif
 }
 
 void PokemonTables::load_gender_ratios()
 {
-#if COMPRESS_DATA
+#if USE_COMPRESSED_DATA
     load_table(GENDER_RATIO, GENDER_RATIO_lz10_bin, gender_ratios_loaded);
 #endif
 }
 
 void PokemonTables::load_num_abilities()
 {
-#if COMPRESS_DATA
+#if USE_COMPRESSED_DATA
     load_table((uint8_t *)NUM_ABILITIES, NUM_ABILITIES_lz10_bin, num_abilities_loaded);
 #endif
 }
 
 void PokemonTables::load_first_moves()
 {
-#if COMPRESS_DATA
+#if USE_COMPRESSED_DATA
     load_table(FIRST_MOVES, FIRST_MOVES_lz10_bin, first_moves_loaded);
 #endif
 }
 
 void PokemonTables::load_power_points()
 {
-#if COMPRESS_DATA
+#if USE_COMPRESSED_DATA
     load_table(POWER_POINTS, POWER_POINTS_lz10_bin, power_points_loaded);
 #endif
 }
 
 void PokemonTables::load_event_pkmn()
 {
-#if COMPRESS_DATA
+#if USE_COMPRESSED_DATA
     load_table((uint8_t *)EVENT_PKMN, EVENT_PKMN_lz10_bin, event_pkmn_loaded);
 #endif
 }
 
 void PokemonTables::load_types()
 {
-#if COMPRESS_DATA
+#if USE_COMPRESSED_DATA
     load_table((uint8_t *)TYPES, TYPES_lz10_bin, types_loaded);
 #endif
 }
@@ -3518,7 +3518,7 @@ void load_localized_charset(u16 *output_char_array, byte gen, Language lang)
     // however, the language values are 1-based, so we need to convert to 0-based
     const u8 lang_index = localization_charset_indices[(gen - 1) * 7 + (lang - 1)];
 
-#if COMPRESS_DATA
+#if USE_COMPRESSED_DATA
     switch (gen)
     {
     case 1:
