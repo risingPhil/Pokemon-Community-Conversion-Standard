@@ -10,11 +10,9 @@
 #include <iomanip>
 #endif
 
-#if !USE_EXTERNALDATA
-// #include "pokemonData.h"
-#endif
-
 #if USE_CPP_RAND
+#include <ctime>
+#include <cstdlib>
 #else
 #include "random.h"
 #endif
