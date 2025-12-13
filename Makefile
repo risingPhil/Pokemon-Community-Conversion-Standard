@@ -37,7 +37,7 @@ ifneq (build,$(notdir $(CURDIR)))
 .PHONY: all lib clean dirs symlinks
 all: dirs generate_tables lib
 
-lib:
+lib: generate_tables
 	@$(MAKE) -C build -f $(MKFILE_DIR)/Makefile
 	cp build/*.h lib/include/
 	cp -r include lib/
