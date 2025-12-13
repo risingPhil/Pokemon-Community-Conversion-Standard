@@ -3,20 +3,34 @@ export MKFILE_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 # -------- Directory layout --------
 BUILDDIR := $(MKFILE_DIR)/build
 OBJDIR   := $(BUILDDIR)
-LIBDIR   := $(MKFILE_DIR)
+LIBDIR   := $(MKFILE_DIR)/lib
 DATA	 := $(MKFILE_DIR)/data
 
+# Check if the DEVKITARM variable is set
+ifeq ($(strip $(DEVKITARM)),)
+# Not on GBA. set bin2s dir to tools dir,
+# because we need to use our locally built tool. (see bin2s_tool target below)
+export BIN2S_DIR := $(MKFILE_DIR)/tools/bin2s/
+else
+# On GBA, bin2s comes with devkitPro.
+export BIN2S_DIR :=
+endif
+
 #---------------------------------------------------------------------------------
-# canned command sequence for binary data
+# canned command sequence for converting binary data
 # Taken from https://github.com/devkitPro/devkitarm-rules/blob/master/base_tools
 #---------------------------------------------------------------------------------
 define bin2o
 	$(eval _tmpasm := $(shell mktemp))
-	$(SILENTCMD)bin2s -a 4 -H `(echo $(<F) | tr . _)`.h $< > $(_tmpasm)
+	$(SILENTCMD)$(BIN2S_DIR)bin2s -a 4 -H `(echo $(<F) | tr . _)`.h $< > $(_tmpasm)
 	$(SILENTCMD)$(CC) -x assembler-with-cpp $(CPPFLAGS) $(ASFLAGS) -c $(_tmpasm) -o $(<F).o
 	@rm $(_tmpasm)
 endef
 
+# Like Poke_Transporter_GB, this is a multi-stage Makefile.
+# If we are not in the build/ subdirectory, we are in the top-level dir.
+# We need the multiple stages because we need to generate the tables before we can compile
+# the rest of our library. (because we need them to get picked up in BINFILES)
 ifneq (build,$(notdir $(CURDIR)))
 # -------- Cleanup --------
 # -------- Top-level targets --------
@@ -25,10 +39,12 @@ all: dirs generate_tables lib
 
 lib:
 	@$(MAKE) -C build -f $(MKFILE_DIR)/Makefile
+	cp build/*.h lib/include/
+	cp -r include lib/
 
 # Ensure the build directories exist
 dirs:
-	@mkdir -p $(OBJDIR) $(LIBDIR)
+	@mkdir -p $(OBJDIR) $(LIBDIR) $(LIBDIR)/include
 
 generate_tables:
 	mkdir -p data
@@ -45,7 +61,7 @@ ifeq ($(CXX),arm-none-eabi-g++)
 	@echo "]"
 	@echo "Compressing finished!"
 else
-	rmdir data
+	rm -rf data
 	mv to_compress data
 endif
 	@echo
@@ -54,14 +70,15 @@ endif
 
 clean:
 	$(MAKE) -C tools/table-generator clean
-	rm -rf $(BUILDDIR) $(MKFILE_DIR)/data $(MKFILE_DIR)/to_compress $(LIBDIR)/*.a $(LIBDIR)/*.so*
+	$(MAKE) -C tools/bin2s clean
+	rm -rf $(BUILDDIR) $(MKFILE_DIR)/data $(MKFILE_DIR)/to_compress $(LIBDIR)
 
 else
 # -------- Toolchain defaults (can be overridden by parent) --------
 CC       ?= gcc
 CXX      ?= g++
 AR       ?= ar
-CFLAGS   ?= -O2 -fPIC
+CFLAGS   ?= -O2
 CXXFLAGS ?= $(CFLAGS)
 LDFLAGS  ?=
 SOFLAGS  ?= -shared
@@ -94,16 +111,18 @@ OBJS += $(BINOFILES)
 
 VPATH += $(MKFILE_DIR)/source $(DATA)
 
-$(info CURDIR = $(CURDIR))
-$(info OBJDIR = $(OBJDIR))
-$(info C_SOURCES = $(C_SOURCES))
-$(info CPP_SOURCES = $(CPP_SOURCES))
-$(info BINFILES = $(BINFILES))
-$(info OBJS = $(OBJS))
-
 # -------- Top-level targets --------
 .PHONY: all symlinks
-all: $(LIBDIR)/$(STATIC_LIB) $(LIBDIR)/$(SHARED_REAL) symlinks
+
+ifeq ($(strip $(DEVKITARM)),)
+# Not on GBA. Compile the shared lib as well.
+# We need -fPIC for shared libs, but it's not supported on GBA.
+CFLAGS += -fPIC
+all: bin2s_tool $(LIBDIR)/$(STATIC_LIB) $(LIBDIR)/$(SHARED_REAL) symlinks
+else
+# On GBA. Only compile the static lib.
+all: $(LIBDIR)/$(STATIC_LIB)
+endif
 
 
 # -------- Static library --------
@@ -123,6 +142,12 @@ symlinks: $(LIBDIR)/$(SHARED_REAL)
 	ln -sf $(SHARED_REAL) $(LIBDIR)/$(SHARED_MAJOR)
 	ln -sf $(SHARED_MAJOR) $(LIBDIR)/$(SHARED_UNVER)
 
+# This tool is normally bundled with devkitPro, but it's not available on Linux or Windows.
+# Since we want to allow people to build PCCS independently of Poke_Transporter_GB,
+# we have bundled a copy of this tool in the tools/ directory.
+# But that means we need to build it ourselves here when not building for GBA.
+bin2s_tool:
+	$(MAKE) -C $(MKFILE_DIR)/tools/bin2s
 
 # -------- Object file rules --------
 $(OBJDIR)/%.bin.o $(OBJDIR)/%.bin.h: %.bin
