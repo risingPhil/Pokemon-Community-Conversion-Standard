@@ -2,7 +2,7 @@
 
 # Compiler and flags
 CC      := gcc
-CFLAGS  := -O2 -g -Wall -Wextra -DPACKAGE_STRING="\"bin2s PCCS 1.0\""
+CFLAGS  := -O2 -g -Wall -Wextra -Wno-maybe-uninitialized -DPACKAGE_STRING="\"bin2s PCCS 1.0\""
 
 # Target binary
 TARGET  := bin2s
