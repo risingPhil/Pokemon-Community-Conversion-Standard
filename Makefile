@@ -35,9 +35,9 @@ ifneq (build,$(notdir $(CURDIR)))
 # -------- Cleanup --------
 # -------- Top-level targets --------
 .PHONY: all lib clean dirs symlinks
-all: dirs generate_tables lib
+all: dirs generate_tables bin2s_tool lib
 
-lib: generate_tables
+lib: generate_tables bin2s_tool
 	@$(MAKE) -C build -f $(MKFILE_DIR)/Makefile
 	cp build/*.h lib/include/
 	cp -r include lib/
@@ -45,6 +45,13 @@ lib: generate_tables
 # Ensure the build directories exist
 dirs:
 	@mkdir -p $(OBJDIR) $(LIBDIR) $(LIBDIR)/include
+
+# This tool is normally bundled with devkitPro, but it's not available on Linux or Windows.
+# Since we want to allow people to build PCCS independently of Poke_Transporter_GB,
+# we have bundled a copy of this tool in the tools/ directory.
+# But that means we need to build it ourselves here when not building for GBA.
+bin2s_tool:
+	$(MAKE) -C $(MKFILE_DIR)/tools/bin2s
 
 generate_tables:
 	mkdir -p data
@@ -112,7 +119,7 @@ OBJS += $(BINOFILES)
 VPATH += $(MKFILE_DIR)/source $(DATA)
 
 # -------- Top-level targets --------
-.PHONY: all symlinks
+.PHONY: all symlinks bin2s_tool
 
 ifeq ($(strip $(DEVKITARM)),)
 # Not on GBA. Compile the shared lib as well.
@@ -141,13 +148,6 @@ $(LIBDIR)/$(SHARED_REAL): $(BINOFILES) $(OBJS)
 symlinks: $(LIBDIR)/$(SHARED_REAL)
 	ln -sf $(SHARED_REAL) $(LIBDIR)/$(SHARED_MAJOR)
 	ln -sf $(SHARED_MAJOR) $(LIBDIR)/$(SHARED_UNVER)
-
-# This tool is normally bundled with devkitPro, but it's not available on Linux or Windows.
-# Since we want to allow people to build PCCS independently of Poke_Transporter_GB,
-# we have bundled a copy of this tool in the tools/ directory.
-# But that means we need to build it ourselves here when not building for GBA.
-bin2s_tool:
-	$(MAKE) -C $(MKFILE_DIR)/tools/bin2s
 
 # -------- Object file rules --------
 $(OBJDIR)/%.bin.o $(OBJDIR)/%.bin.h: %.bin
