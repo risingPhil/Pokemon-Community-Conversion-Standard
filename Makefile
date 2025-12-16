@@ -1,5 +1,6 @@
 # Get the directory of this Makefile
 export MKFILE_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+export TMPDIR=/tmp
 # -------- Directory layout --------
 BUILDDIR := $(MKFILE_DIR)/build
 OBJDIR   := $(BUILDDIR)
@@ -21,10 +22,10 @@ endif
 # Taken from https://github.com/devkitPro/devkitarm-rules/blob/master/base_tools
 #---------------------------------------------------------------------------------
 define bin2o
-	$(eval _tmpasm := $(shell mktemp))
-	$(SILENTCMD)$(BIN2S_DIR)bin2s -a 4 -H `(echo $(<F) | tr . _)`.h $< > $(_tmpasm)
-	$(SILENTCMD)$(CC) -x assembler-with-cpp $(CPPFLAGS) $(ASFLAGS) -c $(_tmpasm) -o $(<F).o
-	@rm $(_tmpasm)
+	tmpasm="$(OBJDIR)/$(@F).tmp.s"; \
+	$(BIN2S_DIR)bin2s -a 4 -H $$(echo $(<F) | tr . _)".h" $< > $$tmpasm && \
+	$(CC) -x assembler-with-cpp $(CPPFLAGS) $(ASFLAGS) -c $$tmpasm -o $@ && \
+	rm -f $$tmpasm
 endef
 
 # Like Poke_Transporter_GB, this is a multi-stage Makefile.
@@ -53,10 +54,30 @@ dirs:
 bin2s_tool:
 	$(MAKE) -C $(MKFILE_DIR)/tools/bin2s
 
+# generate_tables will generate .bin files for various datatables relevant for the pokemon games.
+# This is done this way because we want to be able to compress them for Poke_Transporter_GB on gba.
+# regardless, these bin files - compressed or not- will get injected into the executable with "bin2o" later.
+#
+# NOTE on the use of env below:
+# We need to nuke our environment in order to default to the system compiler for table-generator.
+# We don't want to compile table-generator for the target host. Only for the build host.
+# But for compatibility with MSYS2 MinGW64 in Windows, we can't use env -i
+# Instead we need to use env like below and make sure we pass things like the temp dirs
+# otherwise it won't compile with MinGW64
 generate_tables:
 	mkdir -p data
 	mkdir -p to_compress
-	@env -i "PATH=$(PATH)" $(MAKE) -C tools/table-generator
+	@env - \
+		PATH="$(PATH)" \
+		TMPDIR=/tmp TMP=/tmp TEMP=/tmp \
+		SYSTEMROOT="$(SYSTEMROOT)" \
+		CC=cc \
+		CXX=c++ \
+		CFLAGS= \
+		CXXFLAGS= \
+		LDFLAGS= \
+		AR=ar \
+		$(MAKE) -C tools/table-generator
 	@echo
 	@echo "----------------------------------------------------------------"
 	@echo
