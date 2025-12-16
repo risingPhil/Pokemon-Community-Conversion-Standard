@@ -7,8 +7,7 @@ OBJDIR   := $(BUILDDIR)
 LIBDIR   := $(MKFILE_DIR)/lib
 DATA	 := $(MKFILE_DIR)/data
 
-# Check if the DEVKITARM variable is set
-ifeq ($(strip $(DEVKITARM)),)
+ifneq ($(CXX),arm-none-eabi-g++)
 # Not on GBA. set bin2s dir to tools dir,
 # because we need to use our locally built tool. (see bin2s_tool target below)
 export BIN2S_DIR := $(MKFILE_DIR)/tools/bin2s/
@@ -52,7 +51,11 @@ dirs:
 # we have bundled a copy of this tool in the tools/ directory.
 # But that means we need to build it ourselves here when not building for GBA.
 bin2s_tool:
+ifneq ($(CXX),arm-none-eabi-g++)
 	$(MAKE) -C $(MKFILE_DIR)/tools/bin2s
+else
+	@echo "Skip building bin2s, it comes with DevkitPro!"
+endif
 
 # generate_tables will generate .bin files for various datatables relevant for the pokemon games.
 # This is done this way because we want to be able to compress them for Poke_Transporter_GB on gba.
@@ -140,13 +143,13 @@ OBJS += $(BINOFILES)
 VPATH += $(MKFILE_DIR)/source $(DATA)
 
 # -------- Top-level targets --------
-.PHONY: all symlinks bin2s_tool
+.PHONY: all symlinks
 
-ifeq ($(strip $(DEVKITARM)),)
+ifneq ($(CXX),arm-none-eabi-g++)
 # Not on GBA. Compile the shared lib as well.
 # We need -fPIC for shared libs, but it's not supported on GBA.
 CFLAGS += -fPIC
-all: bin2s_tool $(LIBDIR)/$(STATIC_LIB) $(LIBDIR)/$(SHARED_REAL) symlinks
+all: $(LIBDIR)/$(STATIC_LIB) $(LIBDIR)/$(SHARED_REAL) symlinks
 else
 # On GBA. Only compile the static lib.
 all: $(LIBDIR)/$(STATIC_LIB)
